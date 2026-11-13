@@ -198,11 +198,11 @@ function wdKind(w) {
   const b = wdBox(w) || 0, idi = w.pos == 'i', pick = a => a[Math.floor(Math.random() * a.length)];
   const blank = wdBlank(w) ? ['blank', 'blank'] : [];
   if (b <= 0) return 'en2ko';
-  if (b == 1) return 'listen';
+  if (b == 1) return pick(['en2ko', 'ox'].concat(blank));   // 소리 없이도 풀 수 있게: 듣기 전용 문제는 없다
   if (b == 2) return 'ko2en';
   if (b == 3) return pick((idi ? ['ox'] : ['pos', 'ox']).concat(blank));
   if (b == 4) return (!idi && /^[a-z]{3,12}$/.test(w.en) && Math.random() < .5) ? 'spell' : (blank.length ? 'blank' : 'ko2en');
-  return pick(['en2ko', 'listen', 'ko2en', 'ox'].concat(blank));
+  return pick(['en2ko', 'ko2en', 'ox'].concat(blank));
 }
 // 헷갈리는 보기: 같은 품사에서 길이가 비슷한 것 먼저
 function wdOthers(w, n) {
@@ -224,9 +224,6 @@ function wdQuiz(w) {
   const koOpts = () => wdOthers(w, 3).map(x => [wdEsc(x.ko), 0]).concat([[wdEsc(w.ko), 1]]);
   if (kind == 'en2ko') {
     head = `<div class="tag">무슨 뜻일까요?</div><div style="text-align:center">${wdBadge(w)}</div>${wdBigWord(w.en)}${wdBtnSay(w)}`;
-    opts = koOpts(); say = true;
-  } else if (kind == 'listen') {
-    head = `<div class="tag">잘 듣고 뜻을 골라요</div><div class="big" style="font-size:72px">🔊</div>${wdBtnSay(w)}`;
     opts = koOpts(); say = true;
   } else if (kind == 'ko2en') {
     head = `<div class="tag">영어로 뭐라고 할까요?</div><div style="text-align:center">${wdBadge(w)}</div><div class="ko" style="font-size:38px;font-weight:bold">${wdEsc(w.ko)}</div>`;
