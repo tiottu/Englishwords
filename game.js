@@ -23,6 +23,9 @@ function wdLoad() {
   s.due = s.due || {};        // 단어마다 다시 풀 날짜
   s.got = s.got || {};        // 얻은 친구 ("단계:번호") - 복습에서 틀려도 사라지지 않는다
   s.custom = s.custom || [];  // 내 단어장 [{en, ko, pos, ex}]
+  s.stat = s.stat || {};      // 날짜별 기록 {r:한 판, ok:맞힘, no:틀림, m:새로 외움}  (성적표)
+  s.stickers = s.stickers || {};   // 모은 스티커 {그림: 개수}
+  s.streakGot = s.streakGot || {}; // 받은 연속 출석 보상
   return s;
 }
 let wd = wdLoad();
@@ -102,25 +105,7 @@ function wdStreak() {
 const wdIsDue = w => wdBox(w) !== undefined && (wd.due[w.en] || '') <= wdToday();
 const wdDueCount = lv => wdPool(lv).filter(wdIsDue).length;
 
-// ---- 첫 화면 ----
-function wdHome() {
-  const friends = Object.keys(wd.got).length;
-  const dueAll = WD_LEVELS.reduce((s, _, i) => s + wdDueCount(i), 0);
-  const lv = WD_LEVELS.map((L, i) => {
-    const total = wdPool(i).length, n = wdPool(i).filter(wdIsDone).length, d = wdDueCount(i);
-    const go = L.custom && !total ? 'wdMine()' : `wdStart(${i})`;
-    return `<button class="btn lvbtn ${L.c}" onclick="${go}"><span>${L.e} ${L.n}</span><small>${d ? '📅' + d + ' · ' : ''}${n}/${total}</small></button>`;
-  }).join('');
-  const pz = typeof wdPzHomeLabel == 'function' ? wdPzHomeLabel() : '';
-  $app.innerHTML = `<div class="big" style="font-size:64px">🐾</div><h1>주하지수의<br>영어단어 정복</h1>
-    <div class="stats"><span>🧸 친구 ${friends}명</span><span>⭐ ${wd.stars}</span><span>🔥 ${wdStreak()}일</span></div>
-    <div class="tag">${dueAll ? '새 단어와 옛 단어 ' + dueAll + '개가 섞여서 나와요' : '어디서 시작할까요?'}</div>${lv}
-    ${pz ? `<button class="btn pzbtn" onclick="wdPuzzle()">${pz}</button>` : ''}
-    <button class="btn small" style="background:#b08850;box-shadow:0 5px 0 #7d5e30" onclick="wdDex(0)">📖 내 친구들</button>
-    <button class="btn small" style="background:#e0709a;box-shadow:0 5px 0 #a8426b" onclick="wdMine()">✏️ 내 단어장 관리</button>
-    <button class="btn small" style="background:#9a9a9a;box-shadow:0 5px 0 #6f6f6f" onclick="wdSoundTest()">🔧 소리 점검</button>
-    ${WD_IN_APP ? '' : `<a class="btn small" style="background:#3fa34d;box-shadow:0 5px 0 #2a7a36;text-align:center;text-decoration:none" href="${WD_APK}">📱 앱으로 받기 (안드로이드)</a>`}`;
-}
+// ---- 첫 화면은 home.js 에 있다 ----
 
 // ---- 한 판 ----
 // 복습할 날이 된 단어 먼저, 새 단어를 조금 섞고, 모자라면 아직 날짜가 안 된 단어로 연습만 한다
@@ -297,11 +282,13 @@ function wdTile(k, el) {
 function wdGrade(w, ok) {
   if (R.tried[w.en]) return;
   R.tried[w.en] = 1;
-  const b = wdBox(w) || 0;
+  const b = wdBox(w) || 0, dst = wdDayStat();
+  ok ? dst.ok++ : dst.no++;
   if (ok) {
     const nb = Math.min(WD_MAXBOX, b + 1);
     wd.box[w.en] = nb; wd.due[w.en] = wdDate(WD_INT[nb]);
     if (b < WD_MASTER && nb >= WD_MASTER) {
+      dst.m++;
       const idx = wdStageIdx(w), st = wdStages(w.lv)[idx], key = wdGotKey(w.lv, idx);
       if (st && st.every(wdIsDone) && !wd.got[key]) { wd.got[key] = 1; R.friends.push(wdFriend(w.lv, idx)); }
     }
@@ -320,8 +307,9 @@ function wdDone(w, ok, delay) {
 function wdResult() {
   const stars = R.mistakes == 0 ? 3 : R.mistakes <= 2 ? 2 : 1;
   wd.stars += stars;
-  const pieces = stars + R.friends.length * 5;       // 퍼즐 조각: 별 개수 + 새 친구마다 5개
-  if (typeof wdPzAdd == 'function') wdPzAdd(pieces);
+  const bonus = wdAfterRound();                      // 오늘의 도전, 연속 출석, 주간 목표 보상 (daily.js)
+  const pieces = stars + R.friends.length * 5 + bonus.pieces;   // 퍼즐 조각: 별 개수 + 새 친구마다 5개 + 보너스
+  wdPzAdd(pieces);
   wdSave();
   const fr = R.friends.length
     ? `<div class="tag">새 친구가 생겼어요!</div><div class="friends">${R.friends.map(f => wdFriendHtml(f) + `<div class="tag">${f.name}</div>`).join('')}</div>` : '';
@@ -329,7 +317,7 @@ function wdResult() {
   const note = R.practice ? `<div class="tag" style="font-size:14px;color:#8a6d3b">아직 다시 볼 날이 안 된 옛 단어 ${R.practice}개는 연습만 했어요</div>` : '';
   const left = wdDueCount(R.lv);
   $app.innerHTML = `<div class="big" style="font-size:64px">${'⭐'.repeat(stars)}</div>
-    <h1>참 잘했어요!</h1>${fr}<div class="tag">🧩 퍼즐 조각 +${pieces}</div>
+    <h1>참 잘했어요!</h1>${fr}<div class="tag">🧩 퍼즐 조각 +${pieces}</div>${bonus.html}
     <div class="tag" style="font-size:15px">${left ? '다시 만날 옛 단어가 ' + left + '개 더 있어요' : '오늘 만날 옛 단어는 다 만났어요!'}</div>${note}
     <div class="tag">오늘 만난 단어</div>${rows}
     <button class="btn" onclick="wdStart(${R.lv})">▶ 또 하기</button>
