@@ -112,7 +112,7 @@ function wdHome() {
     return `<button class="btn lvbtn ${L.c}" onclick="${go}"><span>${L.e} ${L.n}</span><small>${d ? '📅' + d + ' · ' : ''}${n}/${total}</small></button>`;
   }).join('');
   const pz = typeof wdPzHomeLabel == 'function' ? wdPzHomeLabel() : '';
-  $app.innerHTML = `<div class="big" style="font-size:64px">🐾</div><h1>단어 친구들</h1>
+  $app.innerHTML = `<div class="big" style="font-size:64px">🐾</div><h1>주하지수의<br>영어단어 정복</h1>
     <div class="stats"><span>🧸 친구 ${friends}명</span><span>⭐ ${wd.stars}</span><span>🔥 ${wdStreak()}일</span></div>
     <div class="tag">${dueAll ? '새 단어와 옛 단어 ' + dueAll + '개가 섞여서 나와요' : '어디서 시작할까요?'}</div>${lv}
     ${pz ? `<button class="btn pzbtn" onclick="wdPuzzle()">${pz}</button>` : ''}
