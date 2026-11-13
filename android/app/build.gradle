@@ -1,4 +1,4 @@
-// 단어 친구들 안드로이드 앱 (GitHub Actions 가 빌드한다: .github/workflows/android.yml)
+// 주하지수의 영어단어 정복 안드로이드 앱 (GitHub Actions 가 빌드한다: .github/workflows/android.yml)
 plugins {
     id 'com.android.application'
 }
@@ -8,7 +8,9 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId 'io.github.tiottu.englishwords'
+        // 앱 이름을 바꾸면서 예전 앱(io.github.tiottu.englishwords)과 나란히 설치되도록 번호를 붙였다.
+        // (빌드 서버가 매번 다른 서명을 쓰므로 같은 이름으로는 덮어 설치가 안 된다. 기록은 앱 안의 💾 기록 백업으로 옮긴다.)
+        applicationId 'io.github.tiottu.englishwords2'
         minSdk 24
         targetSdk 34
         // 빌드할 때마다 번호가 올라가야 새 앱을 덮어서 설치할 수 있다

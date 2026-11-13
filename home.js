@@ -58,6 +58,7 @@ function wdHome() {
       <button class="btn small" style="background:#3a8fd8;box-shadow:0 5px 0 #2468a3" onclick="wdReport()">📊 성적표</button>
       <button class="btn small" style="background:#e0709a;box-shadow:0 5px 0 #a8426b" onclick="wdMine()">✏️ 내 단어장 관리</button>
       <button class="btn small" style="background:#9a9a9a;box-shadow:0 5px 0 #6f6f6f" onclick="wdSoundTest()">🔧 소리 점검</button>
+      <button class="btn small" style="background:#6b7fd8;box-shadow:0 5px 0 #4658a8" onclick="wdBackup()">💾 기록 백업</button>
       ${WD_IN_APP ? '' : `<a class="btn small" style="background:#3fa34d;box-shadow:0 5px 0 #2a7a36;text-align:center;text-decoration:none" href="${WD_APK}">📱 앱으로 받기</a>`}
     </div>`;
 }
