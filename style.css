@@ -58,3 +58,10 @@ h1 { margin: 0; text-align: center; font-size: 34px; }
 .row{gap:8px;font-size:16px}
 .row span:last-child{text-align:right}
 .pos.c{background:#d98a1f}
+.fr{display:inline-block;width:1.45em;height:1.45em;line-height:1.45em;text-align:center;border-radius:50%}
+.fr.t1{background:radial-gradient(circle,#fff6c2 30%,#ffd54a 100%);box-shadow:0 0 8px #ffc928}
+.fr.t2{background:linear-gradient(135deg,#ffb3c1,#ffe3a3,#b8f0c2,#a8d4ff,#d3b8ff);box-shadow:0 0 8px #b99cff}
+.friends .tag{font-size:16px}
+.card small{word-break:keep-all}
+#wdToast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:90%;background:#4a3b2a;color:#fff;border-radius:14px;padding:12px 16px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#wdToast.show{opacity:1}

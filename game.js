@@ -8,11 +8,7 @@ const WD_LEVELS = [
   { n: '고등학교', t: '고등', e: '🎓', c: 'green', s: [WD_L3, WD_L3B, WD_L3C, WD_L3D, WD_L3E, WD_L3F, WD_L3G, WD_L3H, WD_L3I].join('\n') },
   { n: '숙어', t: '숙어', e: '🔗', c: 'purple', s: WD_L4 + '\n' + WD_L4B, idiom: true }
 ];
-const WD_FRIENDS = ['🐱','🐶','🐰','🐻','🐼','🦊','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦',
-  '🦆','🦉','🐴','🦄','🐝','🦋','🐢','🐙','🐬','🐳','🦈','🐘','🦒','🦓','🐨',
-  '🐹','🐭','🐺','🦝','🐗','🐫','🦘','🦥','🦦','🦔','🦇','🐊','🦎','🐍','🦖',
-  '🦕','🐌','🐞','🐜','🦀','🦞','🦐','🦑','🐠','🐡','🦜','🦢','🦩','🦚','🐓',
-  '🐲','🦏','🦛','🐃','🐂','🐏','🦙','🐐','🦌','🐕'];
+const WD_TIER = ['', '금빛 ', '무지개 '];   // 동물을 한 바퀴 다 만나면 다음 모습으로
 
 const WORDS = [];
 (() => {
@@ -49,18 +45,54 @@ function wdStages(lv) {
   for (let i = 0; i < p.length; i += WD_STAGE) out.push(p.slice(i, i + WD_STAGE));
   return out;
 }
+const WD_OFF = (() => {   // 단계마다 친구 번호가 어디서 시작하는지
+  let o = 0;
+  return WD_LEVELS.map((_, l) => { const s = o; o += Math.ceil(WORDS.filter(w => w.lv == l).length / WD_STAGE); return s; });
+})();
 function wdFriend(lv, i) {
-  let off = 0;
-  for (let l = 0; l < lv; l++) off += wdStages(l).length;
-  return WD_FRIENDS[(off + i) % WD_FRIENDS.length];
+  const n = WD_OFF[lv] + i, A = WD_ANIMALS.length, a = WD_ANIMALS[n % A], tier = Math.floor(n / A) % WD_TIER.length;
+  return { e: a[0], name: WD_TIER[tier] + a[1], tier };
 }
+const wdFriendHtml = f => `<span class="fr t${f.tier}">${f.e}</span>`;
 const wdStageOf = w => wdStages(w.lv)[Math.floor(wdPool(w.lv).indexOf(w) / WD_STAGE)];
 const wdBadge = w => `<span class="pos ${w.pos}">${WD_POS_NAME[w.pos]}</span>`;
 const wdBigWord = t => `<div class="word" style="font-size:${t.length > 18 ? 26 : t.length > 11 ? 36 : 50}px">${t}</div>`;
 
 // ---- 소리 ----
+// 폰(특히 안드로이드 크롬)에서 소리가 안 나는 흔한 까닭을 피한다:
+// 1) 목소리 목록이 늦게 올라온다 -> 올라오면 영어 목소리를 고른다
+// 2) cancel 바로 뒤의 speak 는 조용히 무시된다 -> 잠깐 쉬었다가 읽는다
+// 3) 읽는 도중 객체가 치워진다 -> 변수에 붙잡아 둔다
+let wdVoice = null, wdUtter = null, wdSayTimer = null;
+function wdPickVoice() {
+  try {
+    const vs = speechSynthesis.getVoices();
+    wdVoice = vs.find(v => /^en[-_]US/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+  } catch (e) {}
+}
+try { speechSynthesis.onvoiceschanged = wdPickVoice; wdPickVoice(); } catch (e) {}
+function wdToast(msg) {
+  let el = document.getElementById('wdToast');
+  if (!el) { el = document.createElement('div'); el.id = 'wdToast'; document.body.appendChild(el); }
+  el.textContent = msg; el.className = 'show';
+  clearTimeout(wdToast.t); wdToast.t = setTimeout(() => { el.className = ''; }, 3500);
+}
 function wdSay(t) {
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = .85; speechSynthesis.speak(u); } catch (e) {}
+  if (!('speechSynthesis' in window)) { wdToast('이 폰에서는 발음을 들려줄 수 없어요'); return; }
+  const ss = speechSynthesis, go = () => {
+    try {
+      if (!wdVoice) wdPickVoice();
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = wdVoice ? wdVoice.lang : 'en-US'; if (wdVoice) u.voice = wdVoice;
+      u.rate = .85; u.volume = 1;
+      u.onerror = e => { if (e.error && e.error != 'canceled' && e.error != 'interrupted') wdToast('발음이 안 나와요 (' + e.error + ') 폰 음량과 음성 설정을 확인해 주세요'); };
+      wdUtter = u;
+      if (ss.paused) ss.resume();
+      ss.speak(u);
+    } catch (e) { wdToast('발음을 들려줄 수 없어요'); }
+  };
+  clearTimeout(wdSayTimer);
+  if (ss.speaking || ss.pending) { ss.cancel(); wdSayTimer = setTimeout(go, 120); } else go();
 }
 let wdAC;
 function wdBeep(f, d) {
@@ -260,7 +292,7 @@ function wdResult() {
   const stars = R.mistakes == 0 ? 3 : R.mistakes <= 2 ? 2 : 1;
   wd.stars += stars; wdSave();
   const fr = R.friends.length
-    ? `<div class="tag">새 친구가 생겼어요!</div><div class="friends">${R.friends.join(' ')}</div>` : '';
+    ? `<div class="tag">새 친구가 생겼어요!</div><div class="friends">${R.friends.map(f => wdFriendHtml(f) + `<div class="tag">${f.name}</div>`).join('')}</div>` : '';
   const rows = R.words.map(w => `<div class="row"><span>${wdBadge(w)} <b>${w.en}</b></span><span>${w.ko}</span></div>`).join('');
   $app.innerHTML = `<div class="big" style="font-size:64px">${'⭐'.repeat(stars)}</div>
     <h1>참 잘했어요!</h1>${fr}<div class="tag">오늘 만난 단어</div>${rows}
@@ -273,8 +305,8 @@ function wdResult() {
 function wdDex(lv) {
   const tabs = WD_LEVELS.map((L, i) => `<button class="btn ${i == lv ? '' : 'blue'}" onclick="wdDex(${i})">${L.e} ${L.t}</button>`).join('');
   const cells = wdStages(lv).map((st, i) => {
-    const n = st.filter(wdIsDone).length, full = n == st.length;
-    return `<div class="card ${full ? '' : 'lock'}" onclick="wdStageView(${lv},${i})">${full ? wdFriend(lv, i) : '❓'}<small>${n}/${st.length}</small></div>`;
+    const n = st.filter(wdIsDone).length, full = n == st.length, f = wdFriend(lv, i);
+    return `<div class="card ${full ? '' : 'lock'}" onclick="wdStageView(${lv},${i})">${full ? wdFriendHtml(f) : '❓'}<small>${full ? f.name : n + '/' + st.length}</small></div>`;
   }).join('');
   $app.innerHTML = `<div class="top"><button class="x" onclick="wdHome()">← 뒤로</button></div>
     <div class="tabs">${tabs}</div><div class="tag">${WD_STAGE}개를 모두 외우면 친구가 나타나요</div>
@@ -287,7 +319,7 @@ function wdStageView(lv, i) {
       <span>${b === undefined ? '' : wdBadge(w) + ' '}<b>${b === undefined ? '???' : w.en}</b></span><span>${b === undefined ? '' : w.ko}</span></div>`;
   }).join('');
   $app.innerHTML = `<div class="top"><button class="x" onclick="wdDex(${lv})">← 뒤로</button></div>
-    <div class="friends">${wdStages(lv)[i].every(wdIsDone) ? wdFriend(lv, i) : '❓'}</div>${rows}`;
+    <div class="friends">${wdStages(lv)[i].every(wdIsDone) ? wdFriendHtml(wdFriend(lv, i)) + `<div class="tag">${wdFriend(lv, i).name}</div>` : '❓'}</div>${rows}`;
 }
 
 wdHome();
