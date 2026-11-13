@@ -79,20 +79,55 @@ function wdToast(msg) {
 }
 function wdSay(t) {
   if (!('speechSynthesis' in window)) { wdToast('이 폰에서는 발음을 들려줄 수 없어요'); return; }
-  const ss = speechSynthesis, go = () => {
+  const ss = speechSynthesis;
+  // useVoice=true: 고른 영어 목소리로 / false: 목소리를 지정하지 않고 폰 기본 영어로 (한 번 더 시도)
+  const go = useVoice => {
     try {
       if (!wdVoice) wdPickVoice();
       const u = new SpeechSynthesisUtterance(t);
-      u.lang = wdVoice ? wdVoice.lang : 'en-US'; if (wdVoice) u.voice = wdVoice;
+      u.lang = (useVoice && wdVoice) ? wdVoice.lang : 'en-US';
+      if (useVoice && wdVoice) u.voice = wdVoice;
       u.rate = .85; u.volume = 1;
-      u.onerror = e => { if (e.error && e.error != 'canceled' && e.error != 'interrupted') wdToast('발음이 안 나와요 (' + e.error + ') 폰 음량과 음성 설정을 확인해 주세요'); };
+      let started = false;
+      u.onstart = () => { started = true; wdSayLog('start'); };
+      u.onend = () => wdSayLog('end');
+      u.onerror = e => {
+        wdSayLog('error ' + e.error);
+        if (e.error && e.error != 'canceled' && e.error != 'interrupted') {
+          if (useVoice && wdVoice) { go(false); return; }
+          wdToast('발음이 안 나와요 (' + e.error + ') 폰 음량과 음성 설정을 확인해 주세요');
+        }
+      };
       wdUtter = u;
       if (ss.paused) ss.resume();
       ss.speak(u);
+      // 1.5초가 지나도 시작을 안 하면 목소리 지정 없이 다시 한 번
+      setTimeout(() => { if (!started && useVoice && wdVoice && !ss.speaking) { ss.cancel(); go(false); } }, 1500);
     } catch (e) { wdToast('발음을 들려줄 수 없어요'); }
   };
   clearTimeout(wdSayTimer);
-  if (ss.speaking || ss.pending) { ss.cancel(); wdSayTimer = setTimeout(go, 120); } else go();
+  if (ss.speaking || ss.pending) { ss.cancel(); wdSayTimer = setTimeout(() => go(true), 120); } else go(true);
+}
+let wdSayLogFn = null;
+function wdSayLog(m) { if (wdSayLogFn) wdSayLogFn(m); }
+
+// 소리 점검 화면: 폰이 발음을 낼 수 있는지 눈으로 확인한다
+function wdSoundTest() {
+  const ok = 'speechSynthesis' in window;
+  const vs = ok ? speechSynthesis.getVoices() : [];
+  const en = vs.filter(v => /^en/i.test(v.lang));
+  $app.innerHTML = `<div class="top"><button class="x" onclick="wdHome()">← 뒤로</button></div>
+    <h1 style="font-size:26px">🔧 소리 점검</h1>
+    <div class="row"><span>발음 기능</span><b>${ok ? '있음' : '없음'}</b></div>
+    <div class="row"><span>폰 목소리</span><b>${vs.length}개 (영어 ${en.length}개)</b></div>
+    <div class="row"><span>고른 목소리</span><b>${wdVoice ? wdVoice.name : '없음(기본)'}</b></div>
+    <button class="btn green" onclick="wdSay('hello')">🔊 hello 말하기</button>
+    <button class="btn blue" onclick="wdGoodSnd()">🔔 효과음 들어 보기</button>
+    <div class="tag">아래 줄이 start 와 end 로 바뀌면 발음이 난 거예요</div>
+    <div class="row" style="min-height:48px"><span id="wdLogBox">(아직 안 눌렀어요)</span></div>
+    <div class="tag" style="font-size:14px;color:#8a6d3b">소리가 안 나면: 폰 미디어 음량, 무음/방해 금지, 설정의 "텍스트 음성 변환(TTS)"에서 영어를 확인해 주세요.</div>`;
+  const box = document.getElementById('wdLogBox'); let lines = [];
+  wdSayLogFn = m => { lines.push(m); box.textContent = lines.slice(-6).join(' → '); };
 }
 let wdAC;
 function wdBeep(f, d) {
@@ -126,7 +161,8 @@ function wdHome() {
   $app.innerHTML = `<div class="big" style="font-size:72px">🐾</div><h1>단어 친구들</h1>
     <div class="stats"><span>🧸 친구 ${friends}명</span><span>⭐ ${wd.stars}</span><span>🔥 ${wdStreak()}일</span></div>
     <div class="tag">어디서 시작할까요?</div>${lv}
-    <button class="btn small" style="background:#b08850;box-shadow:0 5px 0 #7d5e30" onclick="wdDex(0)">📖 내 친구들</button>`;
+    <button class="btn small" style="background:#b08850;box-shadow:0 5px 0 #7d5e30" onclick="wdDex(0)">📖 내 친구들</button>
+    <button class="btn small" style="background:#9a9a9a;box-shadow:0 5px 0 #6f6f6f" onclick="wdSoundTest()">🔧 소리 점검</button>`;
 }
 
 // ---- 한 판 ----
