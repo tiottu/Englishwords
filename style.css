@@ -78,9 +78,9 @@ h1 { margin: 0; text-align: center; font-size: 34px; }
 .tabs .btn{min-width:30%}
 .pzscroll{overflow:auto;max-height:62vh;border-radius:12px;background:#fff;-webkit-overflow-scrolling:touch}
 .pzboard{display:grid;grid-template-columns:repeat(10,var(--c));width:calc(var(--c)*10)}
-.pzc{width:var(--c);height:var(--c);background-image:var(--img);background-size:1000% 1000%;filter:grayscale(.55) brightness(1.12);opacity:.5;border:1px dashed #d8c9a8;box-sizing:border-box}
-.pzc.on{filter:none;opacity:1;border:0}
-.pzc.hint{opacity:1;filter:none;animation:pzblink .5s infinite alternate;outline:3px solid #ff8a3d;outline-offset:-3px}
+.pzc{width:var(--c);height:var(--c);background-color:#efe3c8;background-image:none;background-size:1000% 1000%;border:1px dashed #cdbb94;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:calc(var(--c)*.3);font-weight:bold;color:#b3a07a}
+.pzc.on{background-image:var(--img);border:0;font-size:0}
+.pzc.hint{background-color:#ffd98a;color:#a8561a;animation:pzblink .5s infinite alternate;outline:3px solid #ff8a3d;outline-offset:-3px}
 .pzc.pop{animation:pzpop .5s}
 .pzc.bad{animation:shake .3s;background-color:#ffd3d3}
 @keyframes pzblink{from{transform:scale(1)}to{transform:scale(1.15)}}
@@ -90,3 +90,6 @@ h1 { margin: 0; text-align: center; font-size: 34px; }
 .pzfull{width:100%;border-radius:16px;box-shadow:0 6px 16px #0004}
 .pzthumb{width:100%;border-radius:12px}
 #pzroot{--img:none}
+.pzp{position:relative}
+.pznum{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);background:#8e6cf0;color:#fff;font-weight:bold;font-size:15px;border-radius:12px;padding:1px 10px;border:2px solid #fff}
+.pznum{white-space:nowrap}

@@ -43,11 +43,11 @@ function wdPuzzle() {
   const cells = [];
   for (let i = 0; i < WD_PZ_ALL; i++) {
     const cls = (P.placed[i] == '1' ? ' on' : '') + (wdPzHint == i ? ' hint' : '') + (wdPzLast == i ? ' pop' : '');
-    cells.push(`<div class="pzc${cls}" id="pc${i}" style="${wdPzPos(i)}" onclick="wdPzTap(${i})"></div>`);
+    cells.push(`<div class="pzc${cls}" id="pc${i}" style="${wdPzPos(i)}" onclick="wdPzTap(${i})">${P.placed[i] == '1' ? '' : i + 1}</div>`);   // 빈 자리는 그림 대신 번호만 보인다
   }
   const tray = P.tray > 0
-    ? `<div class="pztray"><div class="pzp" style="${wdPzPos(next)}"></div>
-       <div><b>내 조각 ${P.tray}개</b><br>이 조각이 들어갈 자리를<br>아래 그림에서 눌러 보세요</div></div>`
+    ? `<div class="pztray"><div class="pzp" style="${wdPzPos(next)}"><span class="pznum">${next + 1}번</span></div>
+       <div><b>내 조각 ${P.tray}개</b><br>이 조각은 <b>${next + 1}번</b> 자리예요<br>번호를 찾아 눌러 보세요<br><small>어떤 그림일지 맞출수록 드러나요!</small></div></div>`
     : `<div class="tag">조각이 없어요. 단어 게임을 하면 조각을 받아요! 🧩<br><small>한 판 끝날 때 별 개수만큼, 새 친구가 생기면 5개 더</small></div>`;
   const gal = P.gallery.length
     ? `<div class="tag">🏆 완성한 퍼즐 ${P.gallery.length}개</div><div class="grid2">${P.gallery.map(n =>
