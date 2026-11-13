@@ -6,7 +6,7 @@ const WD_MAXBOX = 7;
 const WD_INT = [0, 0, 0, 1, 2, 4, 7, 14];   // 칸이 오른 뒤 다시 풀 때까지 며칠 (날짜 기준 복습)
 const WD_STAGE = 20;      // 20개를 외우면 친구 1명
 const WD_LEVELS = [
-  { n: '초등 고학년', t: '초등', e: '🎒', c: '', s: [WD_L1, WD_L1B, WD_L1C].join('\n') },
+  { n: '초등학교', t: '초등', e: '🎒', c: '', s: [WD_L1, WD_L1B, WD_L1C].join('\n') },
   { n: '중학교', t: '중등', e: '📘', c: 'blue', s: [WD_L2, WD_L2B, WD_L2C, WD_L2D].join('\n') },
   { n: '고등학교', t: '고등', e: '🎓', c: 'green', s: [WD_L3, WD_L3B, WD_L3C, WD_L3D, WD_L3E, WD_L3F, WD_L3G, WD_L3H, WD_L3I].join('\n') },
   { n: '숙어', t: '숙어', e: '🔗', c: 'purple', s: WD_L4 + '\n' + WD_L4B, idiom: true },
