@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>퍼즐 그림 모음</title>
+<style>
+  body { margin: 0; background: #fff7e0; color: #4a3b2a; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+  h1 { text-align: center; font-size: 24px; margin: 18px 8px 4px; }
+  p { text-align: center; margin: 0 8px 8px; color: #8a6d3b; }
+  .g { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding: 12px; max-width: 1100px; margin: auto; }
+  .c { background: #fff; border-radius: 14px; padding: 8px; text-align: center; font-weight: bold; }
+  .c img { width: 100%; border-radius: 10px; display: block; margin-bottom: 6px; cursor: zoom-in; }
+  #big { position: fixed; inset: 0; background: #000c; display: none; align-items: center; justify-content: center; z-index: 9; }
+  #big img { max-width: 96vw; max-height: 96vh; border-radius: 12px; }
+</style>
+</head>
+<body>
+<h1>🧩 퍼즐 그림 모음</h1>
+<p>그림을 누르면 크게 보여요</p>
+<div class="g" id="g"></div>
+<div id="big" onclick="this.style.display='none'"><img id="bigimg"></div>
+<!-- 퍼즐에서 쓰는 그림 그리기 파일을 그대로 가져다 쓴다 -->
+<script src="scenes.js"></script>
+<script src="scenes-2.js"></script>
+<script src="puzzle.js"></script>
+<script>
+  WD_THEMES.forEach(function (t, i) {
+    var src = wdPzPicture(i), d = document.createElement('div');
+    d.className = 'c';
+    d.innerHTML = '<img src="' + src + '" alt="' + t.name + '">' + (i + 1) + '. ' + t.name;
+    d.firstChild.onclick = function () { document.getElementById('bigimg').src = src; document.getElementById('big').style.display = 'flex'; };
+    document.getElementById('g').appendChild(d);
+  });
+</script>
+</body>
+</html>
