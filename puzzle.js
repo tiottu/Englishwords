@@ -36,7 +36,11 @@ let wdPzZoom = false, wdPzWrong = 0, wdPzHint = -1, wdPzLast = -1;
 const wdPzPos = i => `background-position:${(i % WD_PZ_N) * 100 / (WD_PZ_N - 1)}% ${Math.floor(i / WD_PZ_N) * 100 / (WD_PZ_N - 1)}%`;
 
 function wdPuzzle() {
-  const P = wdPz(), T = WD_THEMES[P.n % WD_THEMES.length], done = wdPzCount(P);
+  const P = wdPz(), done = wdPzCount(P), need = [P.n].concat(P.gallery);
+  if (need.some(n => wdPzIsPhoto(n) && !wdPzCache[n])) {   // 사진 퍼즐은 처음 열 때 사진을 불러온다
+    $app.innerHTML = '<div class="tag">🧩 그림을 불러오는 중…</div>';
+    return wdPzLoad(need, wdPuzzle);
+  }
   const old = document.querySelector('.pzscroll'), keep = old ? [old.scrollLeft, old.scrollTop] : null;
   const fit = Math.floor((Math.min(window.innerWidth || 375, 480) - 40) / WD_PZ_N), c = wdPzZoom ? fit * 2 : fit;
   const next = wdPzNext(P);
@@ -51,8 +55,8 @@ function wdPuzzle() {
     : `<div class="tag">조각이 없어요. 단어 게임을 하면 조각을 받아요! 🧩<br><small>한 판 끝날 때 별 개수만큼, 새 친구가 생기면 5개 더</small></div>`;
   const gal = P.gallery.length
     ? `<div class="tag">🏆 완성한 퍼즐 ${P.gallery.length}개</div><div class="grid2">${P.gallery.map(n =>
-        `<div><img class="pzthumb" src="${wdPzPicture(n)}"><div class="tag" style="font-size:14px">${WD_THEMES[n % WD_THEMES.length].name} #${n + 1}</div></div>`).join('')}</div>` : '';
-  $app.innerHTML = `<div class="top"><button class="x" onclick="wdHome()">← 뒤로</button><b style="flex:1;text-align:center">${T.name} #${P.n + 1}</b>
+        `<div><img class="pzthumb" src="${wdPzPicture(n)}"><div class="tag" style="font-size:14px">${wdPzName(n)}${wdPzNo(n)}</div></div>`).join('')}</div>` : '';
+  $app.innerHTML = `<div class="top"><button class="x" onclick="wdHome()">← 뒤로</button><b style="flex:1;text-align:center">${wdPzName(P.n)}${wdPzNo(P.n)}</b>
     <button class="x" onclick="wdPzZoom=!wdPzZoom;wdPuzzle()">${wdPzZoom ? '🔍 작게' : '🔍 크게'}</button></div>
     <div class="top"><div class="bar"><i style="width:${done}%"></i></div><b>${done}/${WD_PZ_ALL}</b></div>
     ${tray}
@@ -90,13 +94,13 @@ function wdPzTap(i) {
 }
 
 function wdPzDone() {
-  const P = wdPz(), n = P.n, T = WD_THEMES[n % WD_THEMES.length], nt = WD_THEMES[(n + 1) % WD_THEMES.length];
-  P.gallery.push(n); P.n++; P.placed = '0'.repeat(WD_PZ_ALL); wdPzHint = -1; wdPzWrong = 0;
+  const P = wdPz(), n = P.n, nx = wdPzNextId(n);
+  P.gallery.push(n); P.n = nx; P.placed = '0'.repeat(WD_PZ_ALL); wdPzHint = -1; wdPzWrong = 0;
   wdSave();
   $app.innerHTML = `<div class="big" style="font-size:56px">🎉</div><h1>퍼즐 완성!</h1>
-    <div class="tag">${T.name} #${n + 1} 을(를) 다 맞췄어요</div>
+    <div class="tag">${wdPzName(n)}${wdPzNo(n)} 을(를) 다 맞췄어요</div>
     <img class="pzfull" src="${wdPzPicture(n)}">
-    <button class="btn" onclick="wdPuzzle()">▶ 다음 퍼즐: ${nt.name}</button>
+    <button class="btn" onclick="wdPuzzle()">▶ 다음 퍼즐: ${wdPzName(nx)}</button>
     <button class="btn blue" onclick="wdHome()">🏠 처음으로</button>`;
   wdGoodSnd(); setTimeout(wdGoodSnd, 400); setTimeout(wdGoodSnd, 800);
 }

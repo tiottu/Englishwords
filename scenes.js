@@ -225,6 +225,7 @@ const WD_THEMES = [
 const wdPzCache = {};
 function wdPzPicture(n) {
   if (wdPzCache[n]) return wdPzCache[n];
+  if (n >= 1000) return '';   // 사진 퍼즐은 photos.js 가 불러온 뒤에 있다
   const c = document.createElement('canvas'); c.width = c.height = 800;
   const g = c.getContext('2d');
   WD_THEMES[n % WD_THEMES.length].draw(g, wdPzRng(n * 7919 + 101));
