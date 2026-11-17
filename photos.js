@@ -3,7 +3,10 @@
 const WD_PHOTO_BASE = 1000;
 const WD_PHOTOS = [
   { name: '은행나무 길' }, { name: '단풍 나들이' }, { name: '대학 캠퍼스' },
-  { name: '낙엽 길 산책' }, { name: '서울 전망대' }, { name: '노을 가족사진' }
+  { name: '낙엽 길 산책' }, { name: '서울 전망대' }, { name: '노을 가족사진' },
+  { name: '해바라기 농장' }, { name: '한옥 마을 나들이' }, { name: '바다에서 물놀이' }, { name: '해변 불꽃놀이' },
+  { name: '족욕 체험' }, { name: '현수교 가족 셀카' }, { name: '졸린 숙제 시간' }, { name: '골목길 친구들' },
+  { name: '축구장 응원' }, { name: '야구장 나들이' }, { name: '바닷가 셀카' }
 ];
 const wdPzIsPhoto = n => n >= WD_PHOTO_BASE;
 const wdPzName = n => wdPzIsPhoto(n) ? WD_PHOTOS[n - WD_PHOTO_BASE].name : WD_THEMES[n % WD_THEMES.length].name;
