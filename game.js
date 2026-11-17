@@ -169,7 +169,7 @@ function wdBlank(w) {   // 빈칸 문제로 쓸 수 있는 예문 (단어가 문
 const wdSayEx = en => { if (WD_EXMAP[en]) wdSay(WD_EXMAP[en]); };
 
 function wdLearn(w) {
-  wd.box[w.en] = 0; wd.due[w.en] = wdToday(); wdSave(); wdSay(w.en);
+  wd.box[w.en] = 0; wd.due[w.en] = wdToday(); wdDayStat().n++; wdSave(); wdSay(w.en);   // 새로 만난 단어 기록 (성적표)
   const ex = wdExHtml(w);
   $app.innerHTML = `${wdTop()}<div class="tag">새 ${w.pos == 'i' ? '숙어' : '단어'}를 만났어요!</div>
     <div style="text-align:center">${wdBadge(w)}</div>${wdBigWord(w.en)}

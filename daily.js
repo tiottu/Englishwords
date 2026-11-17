@@ -3,12 +3,14 @@ const WD_STICKERS = ['🌈', '🍀', '⚡', '🎈', '🎁', '🍭', '🍩', '�
   '🥇', '👑', '💎', '🔮', '🧸', '🪁', '🎩', '🎪', '🎡', '🏰', '🗼', '🌋', '🌵', '🌻', '🍄', '🐾',
   '🦴', '🧩', '🎯', '🔔', '📚', '🧠', '💡', '🎵', '🌟', '🎀', '🧁', '🍪', '🥐', '🍕', '🍔', '🌮'];
 const WD_STREAK_REWARD = { 3: 5, 7: 10, 14: 15, 30: 30, 60: 50, 100: 80 };   // 며칠 연속 -> 조각 개수
-const WD_WEEK_GOAL = 20;   // 한 주에 새로 외울 단어 수
+const WD_WEEK_GOAL = 30;   // 한 주에 새로 만날 단어 수 (한 판에 3~5개라 매일 조금씩 해도 채울 수 있다)
 
 // ---- 날짜별 기록 ----
 function wdDayStat() {
   const k = wdToday();
-  return wd.stat[k] = wd.stat[k] || { r: 0, ok: 0, no: 0, m: 0 };
+  const t = wd.stat[k] = wd.stat[k] || { r: 0, ok: 0, no: 0, m: 0, n: 0 };   // r 한 판, ok/no 맞힘/틀림, m 새로 외움, n 새로 만남
+  ['r', 'ok', 'no', 'm', 'n'].forEach(f => { t[f] = t[f] || 0; });   // 예전 기록에 없는 칸을 채운다
+  return t;
 }
 function wdWeekStart(offset) {   // 그 주 월요일 (offset: 0 이번 주, -1 지난주)
   const d = new Date(), dow = (d.getDay() + 6) % 7;
@@ -21,10 +23,13 @@ function wdWeekDays(offset) {
   return out;
 }
 function wdWeekSum(offset) {
-  const s = { r: 0, ok: 0, no: 0, m: 0, played: 0 };
+  const s = { r: 0, ok: 0, no: 0, m: 0, n: 0, played: 0 };
   wdWeekDays(offset).forEach(k => {
     const t = wd.stat[k];
-    if (t) { s.r += t.r || 0; s.ok += t.ok || 0; s.no += t.no || 0; s.m += t.m || 0; if (t.r) s.played++; }
+    if (t) {
+      s.r += t.r || 0; s.ok += t.ok || 0; s.no += t.no || 0; s.m += t.m || 0; s.n += t.n || 0;
+      if (t.r || t.ok || t.no) s.played++;   // 한 판을 다 못 끝내고 나가도 문제를 풀었으면 공부한 날
+    }
   });
   return s;
 }
@@ -70,7 +75,7 @@ function wdAfterRound() {
     if (s >= m && !wd.streakGot[m]) { wd.streakGot[m] = 1; const p = WD_STREAK_REWARD[m]; pieces += p; line(`🔥 ${m}일 연속 출석! 조각 +${p}`); }
   });
   const key = wdWeekStart(0);
-  if (wdWeekSum(0).m >= WD_WEEK_GOAL && wd.weekGoal !== key) { wd.weekGoal = key; pieces += 10; line(`🏁 이번 주 목표를 이뤘어요! 조각 +10`); }
+  if (wdWeekSum(0).n >= WD_WEEK_GOAL && wd.weekGoal !== key) { wd.weekGoal = key; pieces += 10; line(`🏁 이번 주 목표를 이뤘어요! 조각 +10`); }
   if (st.r == 1 && wdGiftReady()) line('🎁 오늘의 상자가 생겼어요! 첫 화면에서 열어 보세요');
   return { pieces, html };
 }
